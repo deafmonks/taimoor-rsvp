@@ -5,6 +5,7 @@
   --gold-dark: #bf9a4a;
   --cream: #fff8e8;
   --text-dark: #3b2220;
+  --paper-url: url("envelope-body.png");
 }
 
 *,
@@ -44,6 +45,10 @@ h1, h2, h3, .names, .tiny-text, .rsvp-section h2 {
   max-width: var(--env-w);
   height: calc(var(--env-w) * 0.6);
   position: relative;
+  /* place the paper texture on the parent so flap + body share the same canvas */
+  background: var(--paper-url) center/cover no-repeat;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   perspective: 1000px;
   cursor: pointer;
   display: flex;
@@ -55,11 +60,8 @@ h1, h2, h3, .names, .tiny-text, .rsvp-section h2 {
 .envelope-body {
   width: 100%;
   height: 100%;
-  /* Use the Midjourney-generated envelope body art, with a subtle paper highlight overlay */
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)),
-    url("envelope-body.png") center/cover no-repeat;
-  background-blend-mode: overlay, normal;
+  /* Transparent overlay so the parent texture shows through; keep subtle highlights */
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
   border: 4px solid var(--gold);
   border-radius: 8px;
   /* outer shadow + subtle inner shadow for paper depth */
@@ -76,16 +78,26 @@ h1, h2, h3, .names, .tiny-text, .rsvp-section h2 {
   right: 0;
   top: 0;
   height: 56%;
-  /* Flap artwork from Midjourney; keep a small overlay to preserve shading */
-
+  /* Use the paper texture on the flap (blended) so the seam aligns and the flap reads visually */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)),
+    var(--paper-url) center/cover no-repeat;
+  background-blend-mode: overlay, normal;
+  /* subtle inner shading to emphasize the fold */
+  box-shadow: inset 0 -12px 30px rgba(0,0,0,0.06);
   transform-origin: top center;
   transform: rotateX(0deg) translateZ(0);
+  /* give the flap a triangular / tapered shape so it reads as a flap */
+  clip-path: polygon(0 0, 100% 0, 66% 100%, 34% 100%);
+  -webkit-clip-path: polygon(0 0, 100% 0, 66% 100%, 34% 100%);
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  border-bottom: 3px solid rgba(0,0,0,0.25);
+  border-bottom: 0; /* remove dark line seam */
   /* slower flap animation for a more graceful opening */
-  transition: transform 1600ms cubic-bezier(.2,.9,.2,1);
-  z-index: 2;
+  transition: transform 1200ms cubic-bezier(.2,.9,.2,1);
+  z-index: 6;
+  /* give flap its own compositing layer to keep 3D transform crisp */
+  will-change: transform;
 }
 
 /* crease line where flap meets body */
@@ -95,15 +107,31 @@ h1, h2, h3, .names, .tiny-text, .rsvp-section h2 {
   left: 8px;
   right: 8px;
   bottom: 0;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(0,0,0,0.12));
+  height: 6px;
+  /* soft blended crease rather than a hard dark line */
+  background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(255,255,255,0.02));
   border-radius: 2px;
   pointer-events: none;
 }
 
+/* subtle fold/ridge shadow that makes the flap feel raised above the body */
+.envelope-flap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: inherit;
+  -webkit-clip-path: inherit;
+  /* gold rim: use an inset stroke so it follows the flap shape; don't recolor the flap */
+  box-shadow: 0 0 0 4px var(--gold) inset;
+  transform: translateZ(0);
+}
+
 .envelope.open .envelope-flap {
-  /* lift the flap, but don't open it completely — partial rotation */
-  transform: rotateX(-60deg) translateY(-6%);
+  /* lift the flap halfway (partial rotation) */
+  transform: rotateX(-50deg) translateY(-6%);
+  /* stronger shadow when lifted to emphasize depth */
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45), inset 0 -8px 24px rgba(0,0,0,0.06);
 }
 
 .wax-seal {
@@ -115,10 +143,10 @@ h1, h2, h3, .names, .tiny-text, .rsvp-section h2 {
   background: transparent;
   border: none;
   position: absolute;
-  z-index: 4;
-  /* position centered horizontally and slightly above bottom inside the envelope */
-  left: 50%;
-  bottom: -37%;
+  z-index: 40; /* sit well above the flap */
+  /* keep static positioning unchanged; animation-only properties adjusted below */
+  left: 51%;
+  bottom: 24%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -126,7 +154,12 @@ h1, h2, h3, .names, .tiny-text, .rsvp-section h2 {
   box-sizing: border-box;
   /* remove visual chrome; PNG provides visuals */
   box-shadow: none;
-  transition: transform 1400ms cubic-bezier(.2,.9,.2,1);
+  /* animation-only: match flap timing/easing and set origin so seal tilts with flap */
+  transform-origin: 50% 12%;
+  transition: transform 1200ms cubic-bezier(.2,.9,.2,1);
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* subtle irregular rim/texture to mimic hand-stamped wax */
@@ -146,7 +179,9 @@ h1, h2, h3, .names, .tiny-text, .rsvp-section h2 {
 
 /* When envelope is opened, lift the wax seal partway (not out of the envelope) */
 .envelope.open .wax-seal {
-  transform: translateX(-50%) translateY(-36%);
+  /* animation-only: tilt and lift the seal so it moves with the flap; static left/bottom unchanged */
+  /* add a slight Z push and increase the Y lift so the seal visually follows the lifting flap */
+  transform: translateX(-50%) translateZ(28px) rotateX(-50deg) translateY(-45%);
 }
 
 .open-text {
