@@ -2,6 +2,7 @@
   --maroon: #7b1b25;
   --maroon-dark: #4b0f15;
   --gold: #f7d18b;
+  --gold-dark: #bf9a4a;
   --cream: #fff8e8;
   --text-dark: #3b2220;
 }
@@ -23,6 +24,148 @@ body {
 /* Use a readable cursive for headings and names */
 h1, h2, h3, .names, .tiny-text, .rsvp-section h2 {
   font-family: 'Dancing Script', Mukta, cursive;
+}
+
+/* Entrance envelope overlay styles */
+#envelope-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* fully opaque maroon so nothing behind is visible */
+  background: var(--maroon);
+  z-index: 9999;
+}
+
+.envelope {
+  --env-w: 620px; /* larger envelope to give more room for the seal */
+  width: calc(min(96vw, var(--env-w)));
+  max-width: var(--env-w);
+  height: calc(var(--env-w) * 0.6);
+  position: relative;
+  perspective: 1000px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible; /* allow flap to remain visible when lifted */
+}
+
+.envelope-body {
+  width: 100%;
+  height: 100%;
+  /* Use the Midjourney-generated envelope body art, with a subtle paper highlight overlay */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)),
+    url("envelope-body.png") center/cover no-repeat;
+  background-blend-mode: overlay, normal;
+  border: 4px solid var(--gold);
+  border-radius: 8px;
+  /* outer shadow + subtle inner shadow for paper depth */
+  box-shadow: 0 18px 40px rgba(0,0,0,0.6), inset 0 -8px 24px rgba(0,0,0,0.25);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.envelope-flap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 56%;
+  /* Flap artwork from Midjourney; keep a small overlay to preserve shading */
+
+  transform-origin: top center;
+  transform: rotateX(0deg) translateZ(0);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: 3px solid rgba(0,0,0,0.25);
+  /* slower flap animation for a more graceful opening */
+  transition: transform 1600ms cubic-bezier(.2,.9,.2,1);
+  z-index: 2;
+}
+
+/* crease line where flap meets body */
+.envelope-flap::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(0,0,0,0.12));
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.envelope.open .envelope-flap {
+  /* lift the flap, but don't open it completely — partial rotation */
+  transform: rotateX(-60deg) translateY(-6%);
+}
+
+.wax-seal {
+  --seal-size: 150px; /* slightly larger seal */
+  width: var(--seal-size);
+  height: var(--seal-size);
+  border-radius: 999px;
+  /* when a user PNG is present we show only the image; otherwise keep minimal neutral appearance */
+  background: transparent;
+  border: none;
+  position: absolute;
+  z-index: 4;
+  /* position centered horizontally and slightly above bottom inside the envelope */
+  left: 50%;
+  bottom: -37%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* remove visual chrome; PNG provides visuals */
+  box-shadow: none;
+  transition: transform 1400ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* subtle irregular rim/texture to mimic hand-stamped wax */
+.wax-seal::before,
+.wax-seal::after {
+  /* hide any generated layers so only the PNG shows */
+  display: none !important;
+}
+
+.wax-seal img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  border-radius: 0; /* keep the PNG's own edges */
+}
+
+/* When envelope is opened, lift the wax seal partway (not out of the envelope) */
+.envelope.open .wax-seal {
+  transform: translateX(-50%) translateY(-36%);
+}
+
+.open-text {
+  position: absolute;
+  bottom: 12px;
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* When overlay is dismissed we hide it visually */
+#envelope-overlay.hidden { display: none; }
+
+/* small screens: smaller envelope */
+@media (max-width: 520px) {
+  .envelope { --env-w: 420px; }
+  .wax-seal { --seal-size: 110px; width: var(--seal-size); height: var(--seal-size); }
+  .wax-seal::after { font-size: 18px; }
 }
 
 /* HERO CAROUSEL */

@@ -99,6 +99,20 @@
   </style>
 </head>
 <body>
+  <!-- Entrance envelope overlay: users must tap/click to open the invitation -->
+  <div id="envelope-overlay" role="dialog" aria-modal="true" aria-label="Closed invitation. Activate to open"> 
+    <div class="envelope" id="envelope" role="button" tabindex="0" aria-pressed="false" aria-label="Open invitation">
+      <div class="envelope-flap">
+        <!-- seal sits on the flap so it lifts together -->
+        <div class="wax-seal has-img" aria-hidden="true">
+          <img src="wax seal.png" alt="wax seal" />
+        </div>
+      </div>
+      <div class="envelope-body">
+        <div class="open-text">Tap to open</div>
+      </div>
+    </div>
+  </div>
   <!-- Top collage marquee -->
   <section class="top-collage" aria-hidden="false">
     <div class="collage-track scrolling" id="collageTrack">
@@ -189,6 +203,85 @@
 
       window.addEventListener('load', start);
       window.addEventListener('resize', start);
+    })();
+  </script>
+
+  <script>
+    // Envelope overlay open handler: accessible for click and keyboard
+    (function(){
+      const overlay = document.getElementById('envelope-overlay');
+      const envelope = document.getElementById('envelope');
+      if (!overlay || !envelope) return;
+
+      function openEnvelope(){
+        envelope.setAttribute('aria-pressed','true');
+        envelope.classList.add('open');
+
+        // If user prefers reduced motion, skip waiting and hide immediately
+        const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (mq && mq.matches){
+          finishOpen();
+          return;
+        }
+
+        // Wait for both flap and wax-seal transitions to complete before hiding
+        const flap = envelope.querySelector('.envelope-flap');
+        const seal = envelope.querySelector('.wax-seal');
+        let done = { flap: false, seal: false };
+
+        function tryFinish(){
+          if (done.flap && done.seal) finishOpen();
+        }
+
+        function onFlapEnd(e){
+          if (e.propertyName && e.propertyName.indexOf('transform') === -1) return;
+          done.flap = true;
+          flap.removeEventListener('transitionend', onFlapEnd);
+          tryFinish();
+        }
+
+        function onSealEnd(e){
+          if (e.propertyName && e.propertyName.indexOf('transform') === -1) return;
+          done.seal = true;
+          seal.removeEventListener('transitionend', onSealEnd);
+          tryFinish();
+        }
+
+        flap.addEventListener('transitionend', onFlapEnd);
+        seal.addEventListener('transitionend', onSealEnd);
+
+        // Safety timeout in case transitions don't fire (2s + small buffer)
+        const fallback = setTimeout(()=>{
+          done.flap = done.seal = true;
+          tryFinish();
+        }, 2200);
+
+        function finishOpen(){
+          clearTimeout(fallback);
+          // hide overlay and restore focus to content
+          overlay.classList.add('hidden');
+          overlay.setAttribute('aria-hidden','true');
+          const invite = document.querySelector('.invite-card');
+          if (invite) {
+            invite.setAttribute('tabindex','-1');
+            invite.focus();
+          }
+        }
+      }
+
+      envelope.addEventListener('click', openEnvelope);
+      envelope.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+          e.preventDefault();
+          openEnvelope();
+        }
+      });
+
+      // If user has reduced motion preferences, skip flap rotation and just hide
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mq && mq.matches){
+        envelope.classList.add('no-motion');
+      }
     })();
   </script>
 
