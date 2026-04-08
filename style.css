@@ -18,8 +18,8 @@
 body {
   margin: 0;
   font-family: "Mukta", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  /* overall page background: maroon shade per request */
-  background: linear-gradient(135deg, #7b1b25 0%, #4b0f15 100%);
+  /* overall page background: light green gradient per request */
+  background: linear-gradient(135deg, #548d54 0%, #ffffff 100%);
   color: var(--text-dark);
 }
 
