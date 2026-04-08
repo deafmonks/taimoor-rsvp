@@ -115,92 +115,7 @@
       </div>
     </div>
   </div>
-  <!-- Top collage marquee -->
-  <section class="top-collage" aria-hidden="false">
-    <div class="collage-track scrolling" id="collageTrack">
-      <!-- first pass of images -->
-      <figure class="collage-item size-l"><img src="IMG3.jpg" alt="couple"/></figure>
-      
-      <figure class="collage-item size-s"><img src="wardac.jpg" alt="warda"/></figure>
-      <figure class="collage-item size-m"><img src="nawal.jpg" alt="nawal"/></figure>
-      <figure class="collage-item size-m"><img src="ring.jpg" alt="ring"/></figure>
-      
-      <!-- duplicate sequence for seamless scroll -->
-      <figure class="collage-item size-l"><img src="IMG3.jpg" alt="couple"/></figure>
-      
-      <figure class="collage-item size-s"><img src="wardac.jpg" alt="warda"/></figure>
-      <figure class="collage-item size-m"><img src="nawal.jpg" alt="nawal"/></figure>
-      <figure class="collage-item size-m"><img src="ring.jpg" alt="ring"/></figure>
-      
-    </div>
-  </section>
-
-  <script>
-    // JS-driven continuous marquee to avoid visible jump at loop point.
-    (function(){
-      const track = document.getElementById('collageTrack');
-      if (!track) return;
-
-      // marquee speed in pixels per second (adjustable)
-      function getMarqueeSpeed(){
-        // slow the loop a little: desktop slower and mobile slightly slower
-        const isMobile = (window.innerWidth || document.documentElement.clientWidth) <= 600;
-        return isMobile ? 140 : 110;
-      }
-      let speed = getMarqueeSpeed(); // initial speed
-      let offset = 0;
-      let lastTime = null;
-      let rafId = null;
-
-      function updateSizes(){
-        // Compute the width of a single sequence more robustly (handle gaps/rounding)
-        const total = track.scrollWidth;
-        const children = Array.from(track.children);
-        // try to read gap between items (fallback to 12 if not set)
-        const trackStyle = window.getComputedStyle(track);
-        const gap = parseFloat(trackStyle.gap) || 12;
-
-        let acc = 0;
-        let seqWidth = 0;
-        for (let i = 0; i < children.length; i++) {
-          const el = children[i];
-          const w = el.offsetWidth + gap; // include gap for pacing
-          acc += w;
-          // stop once we've accumulated approximately half the total width
-          if (acc >= total / 2) { seqWidth = acc; break; }
-        }
-        track._seqWidth = seqWidth || Math.floor(total / 2) || total;
-      }
-
-      function step(ts){
-        if (!lastTime) lastTime = ts;
-        // cap delta to avoid large teleport jumps (e.g., when coming back from background)
-        const maxDt = 0.05; // 50ms
-        let dt = (ts - lastTime) / 1000;
-        if (dt > maxDt) dt = maxDt;
-        lastTime = ts;
-        offset += speed * dt;
-        if (track._seqWidth) {
-          // subtract sequence width in a loop to wrap smoothly (avoids large modulo jumps)
-          while (offset >= track._seqWidth) offset -= track._seqWidth;
-          track.style.transform = `translate3d(${-Math.round(offset)}px,0,0)`;
-        }
-        rafId = requestAnimationFrame(step);
-      }
-
-      function start(){
-        cancelAnimationFrame(rafId);
-        updateSizes();
-        // update speed on each start (handles resize and orientation change)
-        speed = getMarqueeSpeed();
-        lastTime = null;
-        rafId = requestAnimationFrame(step);
-      }
-
-      window.addEventListener('load', start);
-      window.addEventListener('resize', start);
-    })();
-  </script>
+  <!-- Top collage removed per user request -->
 
   <script>
     // Envelope overlay open handler: accessible for click and keyboard
@@ -309,12 +224,12 @@
     </header>
 
     <!-- COUPLE PHOTOS -->
-    <section class="couple-photos" aria-label="Couple photos" style="display:flex;gap:16px;justify-content:center;margin:24px 0;">
-      <div style="flex:1;max-width:280px;text-align:center;">
-        <img src="IMG3.jpg" alt="Bride" style="width:100%;height:auto;border-radius:8px;object-fit:cover;" />
+    <section class="couple-photos" aria-label="Couple photos" style="display:flex;flex-direction:column;gap:12px;align-items:center;margin:24px 0;">
+      <div style="width:100%;max-width:540px;text-align:center;">
+        <img src="ring.jpg" alt="ring" style="width:100%;height:auto;border-radius:8px;object-fit:cover;" />
       </div>
-      <div style="flex:1;max-width:280px;text-align:center;">
-        <img src="groom.jpg" alt="Groom" style="width:100%;height:auto;border-radius:8px;object-fit:cover;" />
+      <div style="width:100%;max-width:540px;text-align:center;">
+        <img src="IMG3.jpg" alt="couple" style="width:100%;height:auto;border-radius:8px;object-fit:cover;" />
       </div>
     </section>
 
