@@ -1,6 +1,7 @@
 :root {
-  --maroon: #7b1b25;
-  --maroon-dark: #4b0f15;
+  /* switched to a sage green palette per request */
+  --maroon: #9aa89a; /* sage */
+  --maroon-dark: #6f866f; /* darker sage */
   --gold: #f7d18b;
   --gold-dark: #bf9a4a;
   --cream: #fff8e8;
